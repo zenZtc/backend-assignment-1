@@ -49,6 +49,21 @@ app.get('/users/:id', (req, res) => {
     res.status(200).json(user);
 });
 
+
+// POST /user – Add a new user
+app.post('/user', validateUser, (req, res) => {
+    const newUser = {
+        id: (users.length + 1).toString(),
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        hobby: req.body.hobby
+    };
+    users.push(newUser);
+    res.status(201).json(newUser);
+});
+
+
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
