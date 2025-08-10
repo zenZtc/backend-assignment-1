@@ -64,6 +64,19 @@ app.post('/user', validateUser, (req, res) => {
 
 
 
+// PUT /user/:id – Update an existing user
+app.put('/user/:id', validateUser, (req, res) => {
+    const userIndex = users.findIndex(u => u.id === req.params.id);
+    if (userIndex === -1) {
+        return res.status(404).json({ error: "User not found" });
+    }
+    users[userIndex] = { id: req.params.id, ...req.body };
+    res.status(200).json(users[userIndex]);
+});
+
+
+
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
