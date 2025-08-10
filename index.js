@@ -40,6 +40,15 @@ app.get('/users', (req, res) => {
 });
 
 
+// GET /users/:id – Fetch a specific user
+app.get('/users/:id', (req, res) => {
+    const user = users.find(u => u.id === req.params.id);
+    if (!user) {
+        return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
