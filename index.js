@@ -76,6 +76,19 @@ app.put('/user/:id', validateUser, (req, res) => {
 
 
 
+// DELETE /user/:id – Delete a user
+app.delete('/user/:id', (req, res) => {
+    const userIndex = users.findIndex(u => u.id === req.params.id);
+    if (userIndex === -1) {
+        return res.status(404).json({ error: "User not found" });
+    }
+    const deletedUser = users.splice(userIndex, 1);
+    res.status(200).json({ message: "User deleted successfully", deletedUser });
+});
+
+
+
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
