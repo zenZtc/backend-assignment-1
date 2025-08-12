@@ -3,7 +3,6 @@ const app = express();
 
 // Middleware to parse JSON bodies
 app.use(express.json());
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
@@ -14,18 +13,8 @@ let users = [
 ]; 
 
 
-// ======== Middleware: Request Logger ========
-app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-        const elapsed = Date.now() - start;
-        console.log(`${req.method} ${req.originalUrl} -> ${res.statusCode} (${elapsed}ms)`);
-    });
-    next();
-});
-
-// ======== Middleware: Validation for POST & PUT ========
-function validateUser(req, res, next) {
+// POST validation — requires all fields
+function validateNewUser(req, res, next) {
     const { firstName, lastName, hobby } = req.body;
     if (!firstName || !lastName || !hobby) {
         return res.status(400).json({
@@ -34,6 +23,27 @@ function validateUser(req, res, next) {
     }
     next();
 }
+
+// PUT validation — allows partial updates
+function validateUpdateUser(req, res, next) {
+    console.log("windows update ")
+    const allowedFields = ["firstName", "lastName", "hobby","id"];
+    const bodyKeys = Object.keys(req.body);
+    console.log(bodyKeys)
+    if (bodyKeys.length === 0) {
+        return res.status(400).json({ error: "At least one field is required to update" });
+    }
+
+    const invalidFields = bodyKeys.filter(key => !allowedFields.includes(key));
+    if (invalidFields.length > 0) {
+        return res.status(400).json({
+            error: `Invalid field(s): ${invalidFields.join(", ")}`
+        });
+    }
+
+    next();
+}
+
 
 
 
@@ -53,8 +63,8 @@ app.get('/users/:id', (req, res) => {
 });
 
 
-// POST /user – Add a new user
-app.post('/user', validateUser, (req, res) => {
+// POST /user – Add a new user (requires all fields)
+app.post('/user', validateNewUser, (req, res) => {
     const newUser = {
         id: (users.length + 1).toString(),
         firstName: req.body.firstName,
@@ -65,17 +75,18 @@ app.post('/user', validateUser, (req, res) => {
     res.status(201).json(newUser);
 });
 
-
-
-// PUT /user/:id – Update an existing user
-app.put('/user/:id', validateUser, (req, res) => {
-    const userIndex = users.findIndex(u => u.id === req.params.id);
-    if (userIndex === -1) {
+// PUT /user/:id – Partial update allowed
+app.put('/user/:id', validateUpdateUser, (req, res) => {
+    const index = users.findIndex(u => u.id === req.params.id);
+    console.log("fdass")
+    if (index === -1) {
         return res.status(404).json({ error: "User not found" });
     }
-    users[userIndex] = { id: req.params.id, ...req.body };
-    res.status(200).json(users[userIndex]);
+
+    users[index] = { ...users[index], ...req.body }; // merge old + new data
+    res.status(200).json(users[index]);
 });
+
 
 
 
